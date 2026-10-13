@@ -16,12 +16,12 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/service.test.js          # one file
+node --test --test-name-pattern "Téléo"   # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
-npx github:GladysAssistant/integration-store .   # store admission checks
+npx github:GladysAssistant/integration-store --skip-image-check .   # store admission checks
 ```
 
 The CI (`.github/workflows/ci.yml`) runs `format:check`, `lint` and `test` on
@@ -31,16 +31,30 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
+index.js                          SDK wiring only: registerHandlers() then connect()
+src/app.js                        every SDK handler -> service; configuration actions
+src/service.js                    watch list, feeds, timers, devices/states, triggers, actions
+src/gtfs.js                       static GTFS: one streaming pass, watched stops kept
+src/zip.js, src/csv.js            ZIP and CSV stream readers (no dependency)
+src/gtfsrt.js                     GTFS-Realtime decoder (minimal protobuf reader)
+src/departures.js                 departure board: timetable + realtime corrections
+src/alerts.js                     service alerts: plain text, followed lines
+src/gbfs.js                       VélôToulouse GBFS client
+src/devices.js                    Gladys devices of a stop and of a station, their states
 src/scenes.js                     scene action handlers (manifest `scene_actions`)
 src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/search.js                     search by name, distances
+src/http.js                       downloads: timeouts, size caps, ETag, file download
+src/time.js                       GTFS service days in Europe/Paris
+src/messages.js                   texts sent from the container (en, fr, de, es)
+src/store.js                      /data/watch.json (atomic, coalesced writes)
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+gladys-assistant-integration.json manifest: config, actions, widgets, scene triggers and actions
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (en and fr mandatory)
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+test/helpers/world.js             fake Gladys + fake fetch on the fixtures + manual clock + /data
+test/helpers/protobuf.js          GTFS-RT encoder for the edge cases
+test/fixtures/gtfs, gbfs          reduced real feeds of 13/10/2026 (see test/fixtures/README.md)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +84,9 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in English, French, German and Spanish: action
+  messages, manifest texts, widget texts, feature names, scene sentences, and
+  `docs/{en,fr,de,es}.md`, kept in sync (`test/i18n.test.js` checks it).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -109,6 +124,9 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
   15000, 30000, 60000). Le template publie `poll_frequency: 300` sans `should_poll` : c'est faux,
   le cœur répond 400 à la découverte. Pour une cadence hors liste, publier `should_poll: false` et
   pousser les états depuis le conteneur, en gardant un `onPoll` de repli.
+  **Piège du 5.2.0** (GladysAssistant/Gladys#3198, correctif #3199, relevé sur gladys-ping-wol) :
+  un appareil **créé sans `should_poll`** n'est jamais sondé, même après correction du cœur (valeur
+  stockée à la création). Ici, tout passe par le minuteur du service (`Tisseo.schedule()`).
 - **`min` et `max` sont NOT NULL** dans `t_device_feature`, y compris pour `text/text` : sans eux,
   « Ajouter à Gladys » échoue en HTTP 422. Mettre 0/0, comme Zigbee2MQTT.
 - Un état publié sur une fonctionnalité **pas encore ajoutée** dans Gladys reçoit un 200 puis est
@@ -213,3 +231,53 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+# Intégration Tisséo (notes de développement, 13/10/2026)
+
+## Sources (open data, sans clé)
+
+| Flux            | URL d'entrée (stable)                                                                             | Contenu réel                                                                                                                                                                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GTFS            | `data.gouv.fr/api/1/datasets/r/64318177-…` → `data.toulouse-metropole.fr/…/tisseo-gtfs/files/…`   | zip de 15 Mo, `stop_times.txt` de 87 Mo (1,29 M lignes), 1 848 zones d'arrêt, 123 lignes, 54 739 trajets, `calendar.txt` vide (tout en `calendar_dates.txt`, ~37 000 services). Ni ETag ni Last-Modified : téléchargé une fois par jour au plus (âge du fichier, horloge murale). |
+| GTFS-RT         | `data.gouv.fr/api/1/datasets/r/b2343456-…` → `api.tisseo.fr/opendata/gtfsrt/GtfsRt.pb`            | ~1,7 Mo, refait toutes les ~20 s, ETag + 304 respectés, pas de gzip. **TripUpdates** (bus, tram, Téléo ; ~1 800) et **Alerts** (~60) ; **ni VehiclePositions ni métro**.                                                                                                          |
+| GBFS 2.3        | `data.gouv.fr/api/1/datasets/r/ca5c6590-…` → `api.cyclocity.fr/contracts/toulouse/gbfs/gbfs.json` | `station_status` ttl 1 s, types `mechanical` / `electrical` (`vehicle_types.json`), noms en MAJUSCULES.                                                                                                                                                                           |
+| Parkings relais | `data.toulouse-metropole.fr`, jeu `parkings-relais`                                               | 7 parcs, **capacité seulement, pas d'occupation** : laissé de côté (brief).                                                                                                                                                                                                       |
+
+Licence ODbL (Tisséo, Toulouse Métropole). L'API officielle `api.tisseo.fr/v2` (clé sur demande)
+n'est pas utilisée : rien de plus pour l'usage visé, et pas de clé pour la tester.
+
+## Pièges découverts
+
+- **Mémoire (sandbox 256 Mo)** : `readline` en `for await` met les lignes en tampon plus vite
+  qu'un consommateur asynchrone ne les prend (RSS 260 Mo sur le vrai GTFS). `src/csv.js` itère le
+  flux lui-même (contre-pression) et appelle un rappel synchrone par ligne.
+- **Chaînes découpées de V8** : un identifiant lu dans un bloc de 64 Ko garde tout le bloc en
+  vie. Les départs conservés pointent vers les copies issues de `stops.txt` (`canonical` dans
+  `src/gtfs.js`) : 35 Mo économisés. Les services sont un masque de bits par jour de la fenêtre
+  (12 Mo économisés). Mesure : tas retenu ~14 Mo, analyse du vrai GTFS en ~6 s, même avec
+  `--max-old-space-size=48`.
+- **Journée de service GTFS** = midi moins 12 h (heure locale), pas minuit : diffère le jour des
+  changements d'heure (`serviceDayStart`, testé le 25/10/2026). Heures au-delà de 24:00.
+- **Téléo** publie ses cabines en trajets `ADDED` (`16:A:1`…) avec `direction_id` toujours 0, et
+  annule les trajets théoriques (`TELEO:del:<trip>`, `CANCELED`). La direction se déduit du quai
+  (`pointRouteDirs`) ou de l'ordre des arrêts (`stopOrder`). Les `ADDED` sans `route_id`
+  (`new_3484`) sont ignorés.
+- **Propagation du retard** : un arrêt sans mise à jour hérite du retard de l'arrêt précédent ;
+  un trajet dont toutes les mises à jour sont après l'arrêt l'a dépassé.
+- **Alertes** : HTML (`<h1>`, `<br />`, `&nbsp;`, emojis), langue vide ; les alertes « réseau »
+  n'ont qu'un `agency_id` (grève, agences fermées, parc relais en travaux).
+- **Noms d'arrêt en double** entre communes (trois « Jean Jaurès ») : identifiant `SA_…` affiché
+  par la recherche et accepté par « Ajouter un arrêt ».
+- **Identifiants** : appareil `stop:SA_1707`, `bike:<station_id>` ; fonctionnalités
+  `<ligne>-<direction>-next|following` (`l1-0-next`), `board`, `traffic`. Le nom porte la
+  destination la plus fréquente, figé à la création.
+- **Seuils de vélos** : les filtres de scène ne font qu'égalité ; un événement est émis par
+  (type de vélo, seuil) franchi, et les trois champs du déclencheur sont `required`.
+- **Bande passante** : ~100 Mo/h de GTFS-RT à 1 min ; lecture tous les 15 min quand aucun
+  passage n'est prévu dans les 90 min (nuit).
+
+## Vérifié (13/10/2026)
+
+- Tests : tableau réel de Jean Jaurès / Pader / Hôpital Rangueil à 17 h 19 (fixtures réduites des
+  vrais flux, `test/fixtures/README.md`), décodeur comparé champ par champ à
+  `gtfs-realtime-bindings` sur le flux complet (0 écart).

@@ -1,177 +1,1164 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Tisséo",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Next Tisséo departures in Toulouse, traffic alerts and VélôToulouse bikes, from open data.",
+    "fr": "Prochains passages Tisséo à Toulouse, perturbations et vélos VélôToulouse, en open data.",
+    "de": "Nächste Tisséo-Abfahrten in Toulouse, Störungen und VélôToulouse-Räder, aus Open Data.",
+    "es": "Próximas salidas de Tisséo en Toulouse, incidencias y bicis VélôToulouse, con datos abiertos."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-tisseo:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-tisseo/main/cover.png",
+  "categories": ["services"],
+  "transports": ["cloud"],
+  "location": true,
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "How it works",
+        "fr": "Comment ça marche",
+        "de": "So funktioniert es",
+        "es": "Cómo funciona"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Find your stops and VélôToulouse stations with the actions below (by name, or around your home), add them, then create their devices in the Discover tab. Everything comes from Tisséo and VélôToulouse open data: no account, no key.",
+        "fr": "Cherchez vos arrêts et stations VélôToulouse avec les actions ci-dessous (par nom, ou autour de votre maison), ajoutez-les, puis créez leurs appareils dans l'onglet Découverte. Tout vient de l'open data Tisséo et VélôToulouse : ni compte, ni clé.",
+        "de": "Suche deine Haltestellen und VélôToulouse-Stationen mit den Aktionen unten (nach Namen oder rund um dein Zuhause), füge sie hinzu und lege dann ihre Geräte im Tab „Entdecken“ an. Alles stammt aus den Open Data von Tisséo und VélôToulouse: kein Konto, kein Schlüssel.",
+        "es": "Busque sus paradas y estaciones VélôToulouse con las acciones de abajo (por nombre o alrededor de su casa), añádalas y cree después sus dispositivos en la pestaña Descubrir. Todo procede de los datos abiertos de Tisséo y VélôToulouse: sin cuenta ni clave."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/guim31/gladys-tisseo/blob/main/docs/en.md",
+          "label": {
+            "en": "Setup guide",
+            "fr": "Guide d'installation",
+            "de": "Installationsanleitung",
+            "es": "Guía de instalación"
+          }
+        },
+        {
+          "url": "https://transport.data.gouv.fr/datasets/tisseo-reseau-transport-urbain-toulousain",
+          "label": {
+            "en": "Tisséo open data",
+            "fr": "Open data Tisséo",
+            "de": "Tisséo Open Data",
+            "es": "Datos abiertos de Tisséo"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
-    },
-    {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
+      "key": "language",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "label": {
+        "en": "Language of the texts",
+        "fr": "Langue des textes",
+        "de": "Sprache der Texte",
+        "es": "Idioma de los textos"
+      },
+      "description": {
+        "en": "Language of the feature names, of the traffic info and of the sentences sent to your scenes. Feature names are set when a device is created.",
+        "fr": "Langue des noms de fonctionnalités, de l'info trafic et des phrases envoyées à vos scènes. Les noms sont fixés à la création d'un appareil.",
+        "de": "Sprache der Funktionsnamen, der Verkehrsinfo und der Sätze für deine Szenen. Die Namen werden beim Anlegen eines Geräts festgelegt.",
+        "es": "Idioma de los nombres de las funciones, de la info de tráfico y de las frases enviadas a sus escenas. Los nombres se fijan al crear un dispositivo."
+      },
       "required": false,
-      "default": "celsius",
+      "default": "fr",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "refresh_interval",
+      "type": "select",
+      "label": {
+        "en": "Refresh interval",
+        "fr": "Fréquence de mise à jour",
+        "de": "Aktualisierungsintervall",
+        "es": "Intervalo de actualización"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "How often the departures and the bike stations are refreshed. The realtime feed weighs about 1.7 MB: once a minute is about 2.4 GB a day while departures are scheduled.",
+        "fr": "Fréquence de mise à jour des passages et des stations vélo. Le flux temps réel pèse environ 1,7 Mo : une fois par minute, c'est environ 2,4 Go par jour aux heures de service.",
+        "de": "Wie oft Abfahrten und Radstationen aktualisiert werden. Der Echtzeit-Feed wiegt etwa 1,7 MB: einmal pro Minute sind das etwa 2,4 GB pro Tag während der Betriebszeiten.",
+        "es": "Con qué frecuencia se actualizan las salidas y las estaciones de bicis. El flujo en tiempo real pesa unos 1,7 MB: una vez por minuto son unos 2,4 GB al día en horas de servicio."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "60",
+      "options": [
+        {
+          "value": "30",
+          "label": {
+            "en": "30 seconds",
+            "fr": "30 secondes",
+            "de": "30 Sekunden",
+            "es": "30 segundos"
+          }
+        },
+        {
+          "value": "60",
+          "label": {
+            "en": "1 minute",
+            "fr": "1 minute",
+            "de": "1 Minute",
+            "es": "1 minuto"
+          }
+        },
+        {
+          "value": "120",
+          "label": {
+            "en": "2 minutes",
+            "fr": "2 minutes",
+            "de": "2 Minuten",
+            "es": "2 minutos"
+          }
+        },
+        {
+          "value": "300",
+          "label": {
+            "en": "5 minutes",
+            "fr": "5 minutes",
+            "de": "5 Minuten",
+            "es": "5 minutos"
+          }
+        }
+      ]
+    },
+    {
+      "key": "realtime",
+      "type": "boolean",
+      "label": {
+        "en": "Real time",
+        "fr": "Temps réel",
+        "de": "Echtzeit",
+        "es": "Tiempo real"
+      },
+      "description": {
+        "en": "Correct the timetable with the vehicles tracked live (buses, tram, Téléo) and read the traffic alerts. Off: timetable only, no download every minute.",
+        "fr": "Corriger les horaires avec les véhicules suivis en direct (bus, tram, Téléo) et lire les perturbations. Désactivé : horaires théoriques seuls, aucun téléchargement chaque minute.",
+        "de": "Den Fahrplan mit den live verfolgten Fahrzeugen (Busse, Tram, Téléo) korrigieren und die Störungen lesen. Aus: nur Fahrplan, kein Download jede Minute.",
+        "es": "Corregir los horarios con los vehículos seguidos en directo (autobuses, tranvía, Téléo) y leer las incidencias. Desactivado: solo horarios teóricos, sin descarga cada minuto."
+      },
+      "required": false,
+      "default": true
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
+      "key": "search_stops",
+      "label": {
+        "en": "Find a stop",
+        "fr": "Chercher un arrêt",
+        "de": "Haltestelle suchen",
+        "es": "Buscar una parada"
+      },
+      "description": {
+        "en": "Lists the stops matching a name, or the closest ones to your home when the name is empty, with their lines and identifier.",
+        "fr": "Liste les arrêts correspondant à un nom, ou les plus proches de votre maison si le nom est vide, avec leurs lignes et leur identifiant.",
+        "de": "Listet die Haltestellen zu einem Namen auf, oder die nächstgelegenen zu deinem Zuhause, wenn der Name leer ist, mit Linien und Kennung.",
+        "es": "Lista las paradas que coinciden con un nombre, o las más cercanas a su casa si el nombre está vacío, con sus líneas y su identificador."
+      },
+      "timeout_seconds": 120,
       "fields": [
         {
-          "key": "device",
+          "key": "query",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Stop name",
+            "fr": "Nom de l'arrêt",
+            "de": "Name der Haltestelle",
+            "es": "Nombre de la parada"
+          },
+          "description": {
+            "en": "Empty: the stops around your home (position set in Gladys).",
+            "fr": "Vide : les arrêts autour de votre maison (position renseignée dans Gladys).",
+            "de": "Leer: die Haltestellen rund um dein Zuhause (Position in Gladys eingetragen).",
+            "es": "Vacío: las paradas alrededor de su casa (posición indicada en Gladys)."
+          },
+          "placeholder": {
+            "en": "e.g. Jean Jaurès",
+            "fr": "ex. Jean Jaurès",
+            "de": "z. B. Jean Jaurès",
+            "es": "p. ej. Jean Jaurès"
+          }
+        }
+      ]
+    },
+    {
+      "key": "add_stop",
+      "label": {
+        "en": "Add a stop",
+        "fr": "Ajouter un arrêt",
+        "de": "Haltestelle hinzufügen",
+        "es": "Añadir una parada"
+      },
+      "description": {
+        "en": "Watches a stop: its device then appears in the Discover tab. Adding a stop already watched changes its lines.",
+        "fr": "Surveille un arrêt : son appareil apparaît ensuite dans l'onglet Découverte. Ajouter un arrêt déjà surveillé change ses lignes.",
+        "de": "Überwacht eine Haltestelle: Das Gerät der Haltestelle erscheint danach im Tab „Entdecken“. Eine bereits überwachte Haltestelle erneut hinzuzufügen ändert ihre Linien.",
+        "es": "Vigila una parada: su dispositivo aparece después en la pestaña Descubrir. Añadir una parada ya vigilada cambia sus líneas."
+      },
+      "timeout_seconds": 120,
+      "fields": [
+        {
+          "key": "stop",
+          "type": "string",
+          "required": true,
+          "label": {
+            "en": "Stop name or identifier",
+            "fr": "Nom ou identifiant de l'arrêt",
+            "de": "Name oder Kennung der Haltestelle",
+            "es": "Nombre o identificador de la parada"
+          },
+          "description": {
+            "en": "The identifier (SA_…) is shown by \"Find a stop\": use it when several stops share a name.",
+            "fr": "L'identifiant (SA_…) est donné par « Chercher un arrêt » : utilisez-le si plusieurs arrêts portent le même nom.",
+            "de": "Die Kennung (SA_…) zeigt „Haltestelle suchen“ an: Nutze sie, wenn mehrere Haltestellen gleich heißen.",
+            "es": "El identificador (SA_…) lo muestra «Buscar una parada»: úselo si varias paradas tienen el mismo nombre."
+          },
+          "placeholder": {
+            "en": "e.g. Jean Jaurès or SA_1707",
+            "fr": "ex. Jean Jaurès ou SA_1707",
+            "de": "z. B. Jean Jaurès oder SA_1707",
+            "es": "p. ej. Jean Jaurès o SA_1707"
+          }
+        },
+        {
+          "key": "lines",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Lines (empty: all)",
+            "fr": "Lignes (vide : toutes)",
+            "de": "Linien (leer: alle)",
+            "es": "Líneas (vacío: todas)"
+          },
+          "description": {
+            "en": "Only these lines, separated by commas. Each line and direction becomes two features of the device.",
+            "fr": "Seulement ces lignes, séparées par des virgules. Chaque ligne et direction devient deux fonctionnalités de l'appareil.",
+            "de": "Nur diese Linien, durch Kommas getrennt. Jede Linie und Richtung wird zu zwei Funktionen des Geräts.",
+            "es": "Solo estas líneas, separadas por comas. Cada línea y dirección se convierte en dos funciones del dispositivo."
+          },
+          "placeholder": {
+            "en": "e.g. A, L1",
+            "fr": "ex. A, L1",
+            "de": "z. B. A, L1",
+            "es": "p. ej. A, L1"
+          }
+        }
+      ]
+    },
+    {
+      "key": "search_bike_stations",
+      "label": {
+        "en": "Find a bike station",
+        "fr": "Chercher une station vélo",
+        "de": "Radstation suchen",
+        "es": "Buscar una estación de bicis"
+      },
+      "description": {
+        "en": "Lists the VélôToulouse stations matching a name, or the closest ones to your home when the name is empty.",
+        "fr": "Liste les stations VélôToulouse correspondant à un nom, ou les plus proches de votre maison si le nom est vide.",
+        "de": "Listet die VélôToulouse-Stationen zu einem Namen auf, oder die nächstgelegenen zu deinem Zuhause, wenn der Name leer ist.",
+        "es": "Lista las estaciones VélôToulouse que coinciden con un nombre, o las más cercanas a su casa si el nombre está vacío."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "query",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Station name",
+            "fr": "Nom de la station",
+            "de": "Name der Station",
+            "es": "Nombre de la estación"
+          },
+          "description": {
+            "en": "Empty: the stations around your home (position set in Gladys).",
+            "fr": "Vide : les stations autour de votre maison (position renseignée dans Gladys).",
+            "de": "Leer: die Stationen rund um dein Zuhause (Position in Gladys eingetragen).",
+            "es": "Vacío: las estaciones alrededor de su casa (posición indicada en Gladys)."
+          },
+          "placeholder": {
+            "en": "e.g. Capitole",
+            "fr": "ex. Capitole",
+            "de": "z. B. Capitole",
+            "es": "p. ej. Capitole"
+          }
+        }
+      ]
+    },
+    {
+      "key": "add_bike_station",
+      "label": {
+        "en": "Add a bike station",
+        "fr": "Ajouter une station vélo",
+        "de": "Radstation hinzufügen",
+        "es": "Añadir una estación de bicis"
+      },
+      "description": {
+        "en": "Watches a VélôToulouse station: its device then appears in the Discover tab.",
+        "fr": "Surveille une station VélôToulouse : son appareil apparaît ensuite dans l'onglet Découverte.",
+        "de": "Überwacht eine VélôToulouse-Station: Das Gerät der Station erscheint danach im Tab „Entdecken“.",
+        "es": "Vigila una estación VélôToulouse: su dispositivo aparece después en la pestaña Descubrir."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "station",
+          "type": "string",
+          "required": true,
+          "label": {
+            "en": "Station name or number",
+            "fr": "Nom ou numéro de la station",
+            "de": "Name oder Nummer der Station",
+            "es": "Nombre o número de la estación"
+          },
+          "placeholder": {
+            "en": "e.g. 1 or Poids de l'Huile",
+            "fr": "ex. 1 ou Poids de l'Huile",
+            "de": "z. B. 1 oder Poids de l'Huile",
+            "es": "p. ej. 1 o Poids de l'Huile"
+          }
+        }
+      ]
+    },
+    {
+      "key": "remove",
+      "label": {
+        "en": "Remove a stop or a station",
+        "fr": "Retirer un arrêt ou une station",
+        "de": "Haltestelle oder Station entfernen",
+        "es": "Quitar una parada o una estación"
+      },
+      "description": {
+        "en": "Stops watching it. Its device stays in Gladys until you delete it.",
+        "fr": "Arrête de le surveiller. Son appareil reste dans Gladys jusqu'à ce que vous le supprimiez.",
+        "de": "Beendet die Überwachung. Das Gerät bleibt in Gladys, bis du es löschst.",
+        "es": "Deja de vigilarla. Su dispositivo permanece en Gladys hasta que usted lo elimine."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true,
+          "label": {
+            "en": "Name or identifier",
+            "fr": "Nom ou identifiant",
+            "de": "Name oder Kennung",
+            "es": "Nombre o identificador"
+          },
+          "placeholder": {
+            "en": "e.g. Jean Jaurès",
+            "fr": "ex. Jean Jaurès",
+            "de": "z. B. Jean Jaurès",
+            "es": "p. ej. Jean Jaurès"
+          }
+        }
+      ]
+    },
+    {
+      "key": "status",
+      "label": {
+        "en": "Show what is watched",
+        "fr": "Afficher la surveillance",
+        "de": "Überwachung anzeigen",
+        "es": "Mostrar lo vigilado"
+      },
+      "description": {
+        "en": "The watched stops and stations, and the state of each data feed.",
+        "fr": "Les arrêts et stations surveillés, et l'état de chaque flux de données.",
+        "de": "Die überwachten Haltestellen und Stationen und der Zustand jedes Datenfeeds.",
+        "es": "Las paradas y estaciones vigiladas, y el estado de cada flujo de datos."
+      },
+      "timeout_seconds": 10
+    }
+  ],
+  "widgets": [
+    {
+      "key": "departures",
+      "label": {
+        "en": "Next departures",
+        "fr": "Prochains passages",
+        "de": "Nächste Abfahrten",
+        "es": "Próximas salidas"
+      },
+      "description": {
+        "en": "The next two departures of each line at a stop, real time or timetable.",
+        "fr": "Les deux prochains passages de chaque ligne à un arrêt, en temps réel ou théoriques.",
+        "de": "Die nächsten zwei Abfahrten jeder Linie an einer Haltestelle, Echtzeit oder Fahrplan.",
+        "es": "Las dos próximas salidas de cada línea en una parada, en tiempo real o teóricas."
+      },
+      "icon": "clock",
+      "settings": [
+        {
+          "key": "stop",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "required": true,
+          "label": {
+            "en": "Stop",
+            "fr": "Arrêt",
+            "de": "Haltestelle",
+            "es": "Parada"
+          }
+        }
+      ]
+    },
+    {
+      "key": "bike_stations",
+      "label": {
+        "en": "VélôToulouse",
+        "fr": "VélôToulouse",
+        "de": "VélôToulouse",
+        "es": "VélôToulouse"
+      },
+      "description": {
+        "en": "Mechanical and electric bikes and free docks of your stations.",
+        "fr": "Vélos mécaniques, électriques et places libres de vos stations.",
+        "de": "Mechanische Räder, E-Bikes und freie Stellplätze deiner Stationen.",
+        "es": "Bicis mecánicas, eléctricas y anclajes libres de sus estaciones."
+      },
+      "icon": "map-pin",
+      "settings": [
+        {
+          "key": "stations",
+          "type": "multi_select",
+          "source": "devices",
+          "required": false,
+          "label": {
+            "en": "Stations shown",
+            "fr": "Stations affichées",
+            "de": "Angezeigte Stationen",
+            "es": "Estaciones mostradas"
+          },
+          "description": {
+            "en": "Empty: every watched station (10 at most).",
+            "fr": "Vide : toutes les stations surveillées (10 au plus).",
+            "de": "Leer: alle überwachten Stationen (höchstens 10).",
+            "es": "Vacío: todas las estaciones vigiladas (10 como máximo)."
+          }
         }
       ]
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "line_disruption",
+      "label": {
+        "en": "Tisséo disruption",
+        "fr": "Perturbation Tisséo",
+        "de": "Tisséo-Störung",
+        "es": "Incidencia de Tisséo"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "A new traffic alert on a line of your watched stops, or on the whole network (strike, closures).",
+        "fr": "Une nouvelle perturbation sur une ligne de vos arrêts surveillés, ou sur tout le réseau (grève, fermetures).",
+        "de": "Eine neue Störung auf einer Linie deiner überwachten Haltestellen oder im ganzen Netz (Streik, Schließungen).",
+        "es": "Una nueva incidencia en una línea de sus paradas vigiladas, o en toda la red (huelga, cierres)."
       },
       "fields": [
         {
-          "key": "device",
+          "key": "scope",
           "type": "select",
-          "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "required": false,
+          "label": {
+            "en": "Scope (empty: any)",
+            "fr": "Portée (vide : toutes)",
+            "de": "Umfang (leer: alle)",
+            "es": "Alcance (vacío: todos)"
+          },
+          "options": [
+            {
+              "value": "line",
+              "label": {
+                "en": "A followed line",
+                "fr": "Une ligne suivie",
+                "de": "Eine verfolgte Linie",
+                "es": "Una línea seguida"
+              }
+            },
+            {
+              "value": "network",
+              "label": {
+                "en": "The whole network",
+                "fr": "Tout le réseau",
+                "de": "Das ganze Netz",
+                "es": "Toda la red"
+              }
+            }
+          ]
         },
         {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "key": "line",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Line (empty: any)",
+            "fr": "Ligne (vide : toutes)",
+            "de": "Linie (leer: alle)",
+            "es": "Línea (vacío: todas)"
+          },
+          "description": {
+            "en": "As written by Tisséo, e.g. A, T1, L9, 15.",
+            "fr": "Telle qu'écrite par Tisséo, ex. A, T1, L9, 15.",
+            "de": "So wie Tisséo sie schreibt, z. B. A, T1, L9, 15.",
+            "es": "Tal como la escribe Tisséo, p. ej. A, T1, L9, 15."
+          },
+          "placeholder": {
+            "en": "e.g. L9",
+            "fr": "ex. L9",
+            "de": "z. B. L9",
+            "es": "p. ej. L9"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "scope",
+          "type": "string",
+          "label": {
+            "en": "Scope (line or network)",
+            "fr": "Portée (line ou network)",
+            "de": "Umfang (line oder network)",
+            "es": "Alcance (line o network)"
+          }
+        },
+        {
+          "key": "line",
+          "type": "string",
+          "label": {
+            "en": "Line",
+            "fr": "Ligne",
+            "de": "Linie",
+            "es": "Línea"
+          }
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "label": {
+            "en": "Title",
+            "fr": "Titre",
+            "de": "Titel",
+            "es": "Título"
+          }
+        },
+        {
+          "key": "description",
+          "type": "string",
+          "label": {
+            "en": "Details",
+            "fr": "Détails",
+            "de": "Details",
+            "es": "Detalles"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "Link to tisseo.fr",
+            "fr": "Lien vers tisseo.fr",
+            "de": "Link zu tisseo.fr",
+            "es": "Enlace a tisseo.fr"
+          }
+        }
+      ]
+    },
+    {
+      "key": "bikes_low",
+      "label": {
+        "en": "Bikes running out at a station",
+        "fr": "Vélos qui manquent à une station",
+        "de": "Räder werden an einer Station knapp",
+        "es": "Bicis que se agotan en una estación"
+      },
+      "description": {
+        "en": "The bikes available at a watched station drop to the chosen number or below.",
+        "fr": "Les vélos disponibles à une station surveillée descendent au nombre choisi ou en dessous.",
+        "de": "Die verfügbaren Räder an einer überwachten Station fallen auf die gewählte Zahl oder darunter.",
+        "es": "Las bicis disponibles en una estación vigilada bajan al número elegido o por debajo."
+      },
+      "fields": [
+        {
+          "key": "station",
+          "type": "select",
+          "source": "devices",
+          "required": true,
+          "label": {
+            "en": "Bike station",
+            "fr": "Station vélo",
+            "de": "Radstation",
+            "es": "Estación de bicis"
+          }
+        },
+        {
+          "key": "bike_type",
+          "type": "select",
+          "required": true,
+          "label": {
+            "en": "Bikes",
+            "fr": "Vélos",
+            "de": "Räder",
+            "es": "Bicis"
+          },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "any",
+              "label": {
+                "en": "Any bike",
+                "fr": "Tous les vélos",
+                "de": "Alle Räder",
+                "es": "Cualquier bici"
+              }
+            },
+            {
+              "value": "mechanical",
+              "label": {
+                "en": "Mechanical bikes",
+                "fr": "Vélos mécaniques",
+                "de": "Mechanische Räder",
+                "es": "Bicis mecánicas"
+              }
+            },
+            {
+              "value": "electric",
+              "label": {
+                "en": "Electric bikes",
+                "fr": "Vélos électriques",
+                "de": "E-Bikes",
+                "es": "Bicis eléctricas"
+              }
+            }
+          ]
+        },
+        {
+          "key": "threshold",
+          "type": "select",
+          "required": true,
+          "label": {
+            "en": "At most",
+            "fr": "Au plus",
+            "de": "Höchstens",
+            "es": "Como máximo"
+          },
+          "options": [
+            {
+              "value": "0",
+              "label": {
+                "en": "0 (none left)",
+                "fr": "0 (plus aucun)",
+                "de": "0 (keins mehr)",
+                "es": "0 (ninguna)"
+              }
+            },
+            {
+              "value": "1",
+              "label": {
+                "en": "1",
+                "fr": "1",
+                "de": "1",
+                "es": "1"
+              }
+            },
+            {
+              "value": "2",
+              "label": {
+                "en": "2",
+                "fr": "2",
+                "de": "2",
+                "es": "2"
+              }
+            },
+            {
+              "value": "3",
+              "label": {
+                "en": "3",
+                "fr": "3",
+                "de": "3",
+                "es": "3"
+              }
+            },
+            {
+              "value": "5",
+              "label": {
+                "en": "5",
+                "fr": "5",
+                "de": "5",
+                "es": "5"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "station_name",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Station",
+            "fr": "Station",
+            "de": "Station",
+            "es": "Estación"
+          }
+        },
+        {
+          "key": "bikes",
+          "type": "number",
+          "label": {
+            "en": "Bikes of this type now",
+            "fr": "Vélos de ce type maintenant",
+            "de": "Räder dieses Typs jetzt",
+            "es": "Bicis de este tipo ahora"
+          }
+        },
+        {
+          "key": "docks",
+          "type": "number",
+          "label": {
+            "en": "Free docks",
+            "fr": "Places libres",
+            "de": "Freie Stellplätze",
+            "es": "Anclajes libres"
+          }
+        }
+      ]
+    },
+    {
+      "key": "bikes_back",
+      "label": {
+        "en": "Bikes back at a station",
+        "fr": "Vélos de retour à une station",
+        "de": "Räder wieder an einer Station",
+        "es": "Bicis de vuelta en una estación"
+      },
+      "description": {
+        "en": "The bikes available at a watched station rise above the chosen number again.",
+        "fr": "Les vélos disponibles à une station surveillée repassent au-dessus du nombre choisi.",
+        "de": "Die verfügbaren Räder an einer überwachten Station steigen wieder über die gewählte Zahl.",
+        "es": "Las bicis disponibles en una estación vigilada vuelven a superar el número elegido."
+      },
+      "fields": [
+        {
+          "key": "station",
+          "type": "select",
+          "source": "devices",
+          "required": true,
+          "label": {
+            "en": "Bike station",
+            "fr": "Station vélo",
+            "de": "Radstation",
+            "es": "Estación de bicis"
+          }
+        },
+        {
+          "key": "bike_type",
+          "type": "select",
+          "required": true,
+          "label": {
+            "en": "Bikes",
+            "fr": "Vélos",
+            "de": "Räder",
+            "es": "Bicis"
+          },
+          "options": [
+            {
+              "value": "any",
+              "label": {
+                "en": "Any bike",
+                "fr": "Tous les vélos",
+                "de": "Alle Räder",
+                "es": "Cualquier bici"
+              }
+            },
+            {
+              "value": "mechanical",
+              "label": {
+                "en": "Mechanical bikes",
+                "fr": "Vélos mécaniques",
+                "de": "Mechanische Räder",
+                "es": "Bicis mecánicas"
+              }
+            },
+            {
+              "value": "electric",
+              "label": {
+                "en": "Electric bikes",
+                "fr": "Vélos électriques",
+                "de": "E-Bikes",
+                "es": "Bicis eléctricas"
+              }
+            }
+          ]
+        },
+        {
+          "key": "threshold",
+          "type": "select",
+          "required": true,
+          "label": {
+            "en": "More than",
+            "fr": "Plus de",
+            "de": "Mehr als",
+            "es": "Más de"
+          },
+          "options": [
+            {
+              "value": "0",
+              "label": {
+                "en": "0 (none left)",
+                "fr": "0 (plus aucun)",
+                "de": "0 (keins mehr)",
+                "es": "0 (ninguna)"
+              }
+            },
+            {
+              "value": "1",
+              "label": {
+                "en": "1",
+                "fr": "1",
+                "de": "1",
+                "es": "1"
+              }
+            },
+            {
+              "value": "2",
+              "label": {
+                "en": "2",
+                "fr": "2",
+                "de": "2",
+                "es": "2"
+              }
+            },
+            {
+              "value": "3",
+              "label": {
+                "en": "3",
+                "fr": "3",
+                "de": "3",
+                "es": "3"
+              }
+            },
+            {
+              "value": "5",
+              "label": {
+                "en": "5",
+                "fr": "5",
+                "de": "5",
+                "es": "5"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "station_name",
+          "type": "string",
+          "label": {
+            "en": "Station",
+            "fr": "Station",
+            "de": "Station",
+            "es": "Estación"
+          }
+        },
+        {
+          "key": "bikes",
+          "type": "number",
+          "label": {
+            "en": "Bikes of this type now",
+            "fr": "Vélos de ce type maintenant",
+            "de": "Räder dieses Typs jetzt",
+            "es": "Bicis de este tipo ahora"
+          }
+        },
+        {
+          "key": "docks",
+          "type": "number",
+          "label": {
+            "en": "Free docks",
+            "fr": "Places libres",
+            "de": "Freie Stellplätze",
+            "es": "Anclajes libres"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "get_next_departures",
+      "label": {
+        "en": "Read the next Tisséo departures",
+        "fr": "Lire les prochains passages Tisséo",
+        "de": "Nächste Tisséo-Abfahrten lesen",
+        "es": "Leer las próximas salidas de Tisséo"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "The next departures of a watched stop, with a sentence ready to send: \"Metro A towards Basso Cambo at Jean Jaurès: in 3 and 7 min\".",
+        "fr": "Les prochains passages d'un arrêt surveillé, avec une phrase prête à envoyer : « Métro A vers Basso Cambo à Jean Jaurès : dans 3 et 7 min ».",
+        "de": "Die nächsten Abfahrten einer überwachten Haltestelle, mit einem fertigen Satz: „Metro A Richtung Basso Cambo ab Jean Jaurès: in 3 und 7 Min.“",
+        "es": "Las próximas salidas de una parada vigilada, con una frase lista para enviar: «Metro A hacia Basso Cambo en Jean Jaurès: dentro de 3 y 7 min»."
+      },
+      "timeout_seconds": 30,
       "fields": [
         {
-          "key": "device",
+          "key": "stop",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "required": true,
+          "label": {
+            "en": "Stop",
+            "fr": "Arrêt",
+            "de": "Haltestelle",
+            "es": "Parada"
+          }
+        },
+        {
+          "key": "line",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Line (empty: any)",
+            "fr": "Ligne (vide : toutes)",
+            "de": "Linie (leer: alle)",
+            "es": "Línea (vacío: todas)"
+          },
+          "placeholder": {
+            "en": "e.g. A",
+            "fr": "ex. A",
+            "de": "z. B. A",
+            "es": "p. ej. A"
+          }
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "sentence",
+          "type": "string",
+          "label": {
+            "en": "Sentence",
+            "fr": "Phrase",
+            "de": "Satz",
+            "es": "Frase"
+          }
+        },
+        {
+          "key": "stop_name",
+          "type": "string",
+          "label": {
+            "en": "Stop",
+            "fr": "Arrêt",
+            "de": "Haltestelle",
+            "es": "Parada"
+          }
+        },
+        {
+          "key": "line",
+          "type": "string",
+          "label": {
+            "en": "Line of the next departure",
+            "fr": "Ligne du prochain passage",
+            "de": "Linie der nächsten Abfahrt",
+            "es": "Línea de la próxima salida"
+          }
+        },
+        {
+          "key": "direction",
+          "type": "string",
+          "label": {
+            "en": "Direction",
+            "fr": "Direction",
+            "de": "Richtung",
+            "es": "Dirección"
+          }
+        },
+        {
+          "key": "minutes",
+          "type": "number",
+          "label": {
+            "en": "Minutes to wait",
+            "fr": "Minutes d'attente",
+            "de": "Minuten Wartezeit",
+            "es": "Minutos de espera"
+          }
+        },
+        {
+          "key": "following_minutes",
+          "type": "number",
+          "label": {
+            "en": "Minutes to the following one",
+            "fr": "Minutes jusqu'au suivant",
+            "de": "Minuten bis zur nächsten",
+            "es": "Minutos hasta la siguiente"
+          }
+        },
+        {
+          "key": "realtime",
+          "type": "number",
+          "label": {
+            "en": "Real time (1 = yes, 0 = timetable)",
+            "fr": "Temps réel (1 = oui, 0 = théorique)",
+            "de": "Echtzeit (1 = ja, 0 = Fahrplan)",
+            "es": "Tiempo real (1 = sí, 0 = teórico)"
+          }
+        },
+        {
+          "key": "count",
+          "type": "number",
+          "label": {
+            "en": "Lines with a departure",
+            "fr": "Lignes avec un passage",
+            "de": "Linien mit Abfahrt",
+            "es": "Líneas con salida"
+          }
         }
       ]
-    }
-  ],
-  "widgets": [
+    },
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "get_bike_station",
+      "label": {
+        "en": "Read a VélôToulouse station",
+        "fr": "Lire une station VélôToulouse",
+        "de": "VélôToulouse-Station lesen",
+        "es": "Leer una estación VélôToulouse"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "The bikes and free docks of a watched station, with a sentence ready to send.",
+        "fr": "Les vélos et places libres d'une station surveillée, avec une phrase prête à envoyer.",
+        "de": "Die Räder und freien Stellplätze einer überwachten Station, mit einem fertigen Satz.",
+        "es": "Las bicis y anclajes libres de una estación vigilada, con una frase lista para enviar."
+      },
+      "timeout_seconds": 15,
+      "fields": [
+        {
+          "key": "station",
+          "type": "select",
+          "source": "devices",
+          "required": true,
+          "label": {
+            "en": "Bike station",
+            "fr": "Station vélo",
+            "de": "Radstation",
+            "es": "Estación de bicis"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "key": "sentence",
+          "type": "string",
+          "label": {
+            "en": "Sentence",
+            "fr": "Phrase",
+            "de": "Satz",
+            "es": "Frase"
+          }
+        },
+        {
+          "key": "station_name",
+          "type": "string",
+          "label": {
+            "en": "Station",
+            "fr": "Station",
+            "de": "Station",
+            "es": "Estación"
+          }
+        },
+        {
+          "key": "bikes",
+          "type": "number",
+          "label": {
+            "en": "Bikes available",
+            "fr": "Vélos disponibles",
+            "de": "Verfügbare Räder",
+            "es": "Bicis disponibles"
+          }
+        },
+        {
+          "key": "mechanical",
+          "type": "number",
+          "label": {
+            "en": "Mechanical bikes",
+            "fr": "Vélos mécaniques",
+            "de": "Mechanische Räder",
+            "es": "Bicis mecánicas"
+          }
+        },
+        {
+          "key": "electric",
+          "type": "number",
+          "label": {
+            "en": "Electric bikes",
+            "fr": "Vélos électriques",
+            "de": "E-Bikes",
+            "es": "Bicis eléctricas"
+          }
+        },
+        {
+          "key": "docks",
+          "type": "number",
+          "label": {
+            "en": "Free docks",
+            "fr": "Places libres",
+            "de": "Freie Stellplätze",
+            "es": "Anclajes libres"
+          }
+        },
+        {
+          "key": "in_service",
+          "type": "number",
+          "label": {
+            "en": "In service (1 = yes, 0 = no)",
+            "fr": "En service (1 = oui, 0 = non)",
+            "de": "In Betrieb (1 = ja, 0 = nein)",
+            "es": "En servicio (1 = sí, 0 = no)"
+          }
+        }
+      ]
     }
   ]
 }

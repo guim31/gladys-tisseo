@@ -1,0 +1,66 @@
+{
+  "last_updated": 1791904786,
+  "ttl": 300,
+  "version": "2.3",
+  "data": {
+    "stations": [
+      {
+        "station_id": "1",
+        "name": "POIDS DE L'HUILE",
+        "lat": 43.60419,
+        "lon": 1.445475,
+        "address": "12 RUE DU POIDS DE L'HUILE",
+        "capacity": 19
+      },
+      {
+        "station_id": "2",
+        "name": "LAFAYETTE",
+        "lat": 43.604885,
+        "lon": 1.445306,
+        "address": "21 RUE LAFAYETTE",
+        "rental_methods": ["creditcard"],
+        "capacity": 24
+      },
+      {
+        "station_id": "3",
+        "name": "ALSACE-LORRAINE - POMME",
+        "lat": 43.603302,
+        "lon": 1.445454,
+        "address": "62 RUE DE LA POMME",
+        "capacity": 18
+      },
+      {
+        "station_id": "4",
+        "name": "GAMBETTA - STE-URSULE",
+        "lat": 43.602671,
+        "lon": 1.442031,
+        "address": "15 RUE SAINTE-URSULE",
+        "capacity": 20
+      },
+      {
+        "station_id": "5",
+        "name": "MARENGO - LEDUC",
+        "lat": 43.611386,
+        "lon": 1.456729,
+        "address": "FACE AU 5 RUE RENE LEDUC",
+        "capacity": 19
+      },
+      {
+        "station_id": "6",
+        "name": "LOIS - CAPITOLE",
+        "lat": 43.605161,
+        "lon": 1.442323,
+        "address": "10 RUE DES LOIS",
+        "capacity": 18
+      },
+      {
+        "station_id": "15",
+        "name": "PORT ST-SAUVEUR - SEEL",
+        "lat": 43.596411,
+        "lon": 1.456584,
+        "address": "FACE AU 5 PORT SAINT-SAUVEUR",
+        "capacity": 20
+      }
+    ]
+  }
+}
