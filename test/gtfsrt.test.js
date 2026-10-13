@@ -66,3 +66,11 @@ test('a truncated or garbage feed is refused, never half read', () => {
   assert.throws(() => decodeFeed(Buffer.from('<html>Service unavailable</html>')), ProtobufError);
   assert.deepEqual(decodeFeed(Buffer.alloc(0)).tripUpdates, []);
 });
+
+test('a negative or oversized length is refused instead of looping forever', () => {
+  // Field 2 (entity), length = varint(-11): ten bytes of two's complement.
+  const negative = Buffer.from([0x12, 0xf5, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01]);
+  assert.throws(() => decodeFeed(negative), ProtobufError);
+  assert.throws(() => decodeFeed(Buffer.from([0x12, 0x7f, 0x00])), ProtobufError);
+  assert.throws(() => decodeFeed(Buffer.from([0x00, 0x00])), ProtobufError);
+});

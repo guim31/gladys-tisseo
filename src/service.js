@@ -48,7 +48,6 @@ import { REPORTS, TEXT, lines, render, say } from './messages.js';
 import { formatDistance, nearest, normalize, searchByName } from './search.js';
 import { dataDirectory } from './store.js';
 import { localDate } from './time.js';
-import { listEntries } from './zip.js';
 
 const logger = createLogger({ name: 'tisseo' });
 
@@ -70,6 +69,8 @@ export const NIGHT_REALTIME_MS = 15 * 60 * 1000;
 // An announced alert that left the feed this long ago may be announced again.
 export const ALERT_MEMORY_MS = 6 * 3600 * 1000;
 const DAILY_CHECK_MS = 3600 * 1000;
+const FIRST_DOWNLOAD_RETRY_MS = 2 * 60 * 1000;
+const DOWNLOAD_RETRY_MS = 30 * 60 * 1000;
 
 export const TRIGGERS = {
   DISRUPTION: 'line_disruption',
@@ -212,10 +213,15 @@ export class Tisseo {
     }
     clearTimeout(this.timer);
     clearTimeout(this.dailyTimer);
+    // A callback still running when the schedule changes must not start a
+    // second chain: each chain only continues while it is the current one.
+    this.generation = (this.generation ?? 0) + 1;
+    const generation = this.generation;
+    const current = () => !this.stopped && this.generation === generation;
     const tick = () => {
       this.timer = setTimeout(async () => {
         await this.refresh().catch((err) => logger.warn(`Refresh failed: ${err.message}`));
-        if (!this.stopped) {
+        if (current()) {
           tick();
         }
       }, this.config.refreshSeconds * 1000);
@@ -225,7 +231,7 @@ export class Tisseo {
     const daily = () => {
       this.dailyTimer = setTimeout(async () => {
         await this.dailyCheck().catch((err) => logger.warn(`Daily check failed: ${err.message}`));
-        if (!this.stopped) {
+        if (current()) {
           daily();
         }
       }, DAILY_CHECK_MS);
@@ -341,24 +347,36 @@ export class Tisseo {
   }
 
   async loadNetwork() {
-    let downloaded = false;
+    let downloaded = null;
     const file = await this.gtfsAge();
-    if (!file || file.age > GTFS_MAX_AGE_MS || file.age < -GTFS_MAX_AGE_MS) {
+    const outdated = !file || file.age > GTFS_MAX_AGE_MS || file.age < -GTFS_MAX_AGE_MS;
+    // After a failed download, wait before the next attempt: every action
+    // would otherwise start one (2 minutes without archive, 30 with one).
+    const backoff = file ? DOWNLOAD_RETRY_MS : FIRST_DOWNLOAD_RETRY_MS;
+    const recentFailure =
+      this.downloadFailedAt !== undefined && Date.now() - this.downloadFailedAt < backoff;
+    if (outdated && recentFailure && !file) {
+      throw new Error(this.gtfsError ?? 'download failed');
+    }
+    if (outdated && !recentFailure) {
       try {
         await mkdir(this.dataDir, { recursive: true });
+        // The new archive replaces the old one only once it has been read
+        // completely: a corrupted file never takes the place of a good one.
         const size = await downloadFile(this.fetch, this.urls.gtfs, this.gtfsPath, {
           validate: async (path) => {
-            const entries = await listEntries(path);
-            if (!entries.has('stop_times.txt') || !entries.has('stops.txt')) {
-              throw new Error('not a GTFS archive');
-            }
+            const watched = new Set(this.watch.stops.map((stop) => stop.id));
+            this.networkStale = false;
+            downloaded = await parseGtfs(path, { watched, now: this.now() });
           },
         });
-        downloaded = true;
         this.gtfsError = null;
+        this.downloadFailedAt = undefined;
         logger.info(`Tisséo timetable downloaded (${Math.round(size / 1e6)} MB)`);
       } catch (err) {
+        downloaded = null;
         this.gtfsError = err.message;
+        this.downloadFailedAt = Date.now();
         logger.warn(`Tisséo timetable download failed: ${err.message}`);
         if (!file) {
           throw err;
@@ -369,15 +387,25 @@ export class Tisseo {
       return this.network;
     }
     do {
-      this.networkStale = false;
       const watched = new Set(this.watch.stops.map((stop) => stop.id));
       const started = Date.now();
-      try {
-        this.network = await parseGtfs(this.gtfsPath, { watched, now: this.now() });
-      } catch (err) {
-        this.gtfsError = err.message;
-        logger.error(`Tisséo timetable unreadable: ${err.message}`);
-        throw err;
+      let fresh = false;
+      if (downloaded) {
+        // Already read while validating the download.
+        this.network = downloaded;
+        downloaded = null;
+        fresh = true;
+      } else {
+        this.networkStale = false;
+        try {
+          this.network = await parseGtfs(this.gtfsPath, { watched, now: this.now() });
+        } catch (err) {
+          // Not taken in: the next call parses again.
+          this.networkStale = true;
+          this.gtfsError = err.message;
+          logger.error(`Tisséo timetable unreadable: ${err.message}`);
+          throw err;
+        }
       }
       this.gtfsDate = (await this.gtfsAge())?.mtime ?? this.now();
       // Names restored from the Gladys devices carry the line filter: the
@@ -390,7 +418,7 @@ export class Tisseo {
         }
       }
       logger.info(
-        `Tisséo timetable read in ${Date.now() - started} ms: ${this.network.stats.areas} stop areas, ${this.network.stats.trips} trips over ${this.network.dates.length} days`,
+        `Tisséo timetable read${fresh ? '' : ` in ${Date.now() - started} ms`}: ${this.network.stats.areas} stop areas, ${this.network.stats.trips} trips over ${this.network.dates.length} days`,
       );
     } while (this.networkStale);
     return this.network;
@@ -569,11 +597,17 @@ export class Tisseo {
   /** One refresh of everything watched; concurrent calls share it. */
   refresh() {
     if (!this.refreshing) {
-      this.refreshing = Promise.allSettled([this.refreshTransit(), this.refreshBikes()]).finally(
-        () => {
+      this.refreshing = Promise.allSettled([this.refreshTransit(), this.refreshBikes()])
+        .then((results) => {
+          for (const result of results) {
+            if (result.status === 'rejected') {
+              logger.warn(`Refresh failed: ${result.reason?.message ?? result.reason}`);
+            }
+          }
+        })
+        .finally(() => {
           this.refreshing = null;
-        },
-      );
+        });
     }
     return this.refreshing;
   }

@@ -60,11 +60,13 @@ class Reader {
   /** A length-delimited field: a sub-reader over its bytes. */
   sub() {
     const length = this.varint();
-    const start = this.pos;
-    this.pos += length;
-    if (this.pos > this.end) {
+    // A negative (10-byte) or oversized length would move backwards and loop
+    // forever on the same field: refused before moving.
+    if (!Number.isSafeInteger(length) || length < 0 || length > this.end - this.pos) {
       throw new ProtobufError('truncated message');
     }
+    const start = this.pos;
+    this.pos += length;
     return new Reader(this.buffer, start, start + length);
   }
 
@@ -102,6 +104,9 @@ class Reader {
   fields(onField) {
     while (!this.done) {
       const key = this.varint();
+      if (key < 8) {
+        throw new ProtobufError('invalid field key');
+      }
       const number = Math.floor(key / 8);
       const wireType = key & 7;
       if (onField.call(this, number, wireType) === false) {

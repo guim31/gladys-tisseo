@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { deflateRawSync } from 'node:zlib';
-import { eachRow, splitRecord } from '../src/csv.js';
+import { CsvError, eachRow, splitRecord } from '../src/csv.js';
 import { GtfsError, parseGtfs, routeMode } from '../src/gtfs.js';
 import { addDays, localDate, parseGtfsTime, serviceDayStart, weekday } from '../src/time.js';
 import { ZipError, listEntries } from '../src/zip.js';
@@ -192,4 +192,18 @@ test('a minimal feed: calendar.txt, a stop point without parent, empty headsigns
   const mask = parsed.services.get('week');
   assert.ok(mask & (1 << parsed.dates.indexOf('20261013')));
   assert.equal(mask & (1 << parsed.dates.indexOf('20261017')), 0);
+});
+
+test('CSV: a stray quote fails fast instead of gluing the rest of the file', async () => {
+  const lines = [
+    'id,name',
+    '1,"broken',
+    ...Array.from({ length: 5000 }, (_, i) => `${i},stop ${i}`),
+  ];
+  const started = Date.now();
+  await assert.rejects(
+    eachRow(Readable.from([Buffer.from(lines.join('\n'))]), ['id'], () => {}),
+    CsvError,
+  );
+  assert.ok(Date.now() - started < 2000);
 });

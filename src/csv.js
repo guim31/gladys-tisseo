@@ -10,6 +10,13 @@
 // next chunk is only inflated once the previous one is processed.
 // -----------------------------------------------------------------------------
 
+// A quoted field longer than this is a stray quote, not a field: without a
+// cap, every following line would be glued to it and re-scanned (quadratic).
+export const MAX_RECORD = 64 * 1024;
+export const MAX_RECORD_LINES = 50;
+
+export class CsvError extends Error {}
+
 /** Splits one CSV record; returns null when a quoted field is still open. */
 export function splitRecord(line) {
   const fields = [];
@@ -56,6 +63,7 @@ export async function eachRow(stream, columns, onRow) {
   let indexes = null;
   let rest = '';
   let pending = '';
+  let pendingLines = 0;
 
   const record = (fields) => {
     if (indexes === null) {
@@ -84,10 +92,15 @@ export async function eachRow(stream, columns, onRow) {
     }
     const fields = splitRecord(text.endsWith('\r') ? text.slice(0, -1) : text);
     if (fields === null) {
+      pendingLines += 1;
+      if (text.length > MAX_RECORD || pendingLines > MAX_RECORD_LINES) {
+        throw new CsvError('unbalanced quote in a CSV record');
+      }
       pending = text;
       return;
     }
     pending = '';
+    pendingLines = 0;
     record(fields);
   };
 

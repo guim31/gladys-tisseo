@@ -10,7 +10,7 @@
 
 import { createReadStream } from 'node:fs';
 import { open } from 'node:fs/promises';
-import { Readable } from 'node:stream';
+import { Readable, pipeline } from 'node:stream';
 import { createInflateRaw } from 'node:zlib';
 
 const END_OF_CENTRAL_DIRECTORY = 0x06054b50;
@@ -121,7 +121,7 @@ export async function openEntry(path, entry) {
   if (entry.method === 0) {
     return raw;
   }
-  const inflate = createInflateRaw();
-  raw.on('error', (err) => inflate.destroy(err));
-  return raw.pipe(inflate);
+  // pipeline: an inflate error, or a consumer that stops early, also closes
+  // the file (raw.pipe() left one descriptor open per corrupt entry).
+  return pipeline(raw, createInflateRaw(), () => {});
 }
