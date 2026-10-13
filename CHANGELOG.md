@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-13
+
 ### Added
 
 - Next departures at the Tisséo stops you choose (metro, tram, Téléo, Linéo,
@@ -31,4 +33,5 @@ the notes of the version's GitHub Release.
   station", with a sentence ready to send.
 - English, French, German and Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-tisseo/commits/main
+[Unreleased]: https://github.com/guim31/gladys-tisseo/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-tisseo/releases/tag/v1.0.0
