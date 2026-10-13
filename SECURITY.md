@@ -30,6 +30,20 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+The integration needs no account, no key and no password. It stores under
+`/data`:
+
+- `watch.json`: the stops and VélôToulouse stations you watch, and the
+  identifiers of the traffic alerts already announced;
+- `gtfs.zip`: the public Tisséo timetable, downloaded once a day.
+
+It reads the position of your Gladys houses (`location`) only to sort the
+stops and stations by distance; the position is never stored nor sent
+anywhere. Its only network traffic is outbound HTTPS to the open data feeds:
+`www.data.gouv.fr` (redirecting to `data.toulouse-metropole.fr` and
+`api.tisseo.fr`) and `api.cyclocity.fr` (VélôToulouse). Every download has a
+timeout and a size limit.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+and the open data services the integration reads.

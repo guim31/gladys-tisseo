@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
+  "name": "gladys-tisseo",
   "version": "1.0.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Gladys Assistant integration: next Tisséo departures in Toulouse, traffic alerts and VélôToulouse bikes, from open data.",
   "type": "module",
   "main": "index.js",
   "scripts": {
