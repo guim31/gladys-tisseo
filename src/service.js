@@ -152,6 +152,7 @@ export class Tisseo {
     this.bikeStatusAt = null;
     this.bikeError = null;
 
+    this.publishFailed = false;
     this.timer = null;
     this.dailyTimer = null;
     this.stopped = false;
@@ -379,6 +380,15 @@ export class Tisseo {
         throw err;
       }
       this.gtfsDate = (await this.gtfsAge())?.mtime ?? this.now();
+      // Names restored from the Gladys devices carry the line filter: the
+      // timetable has the real ones.
+      for (const stop of this.watch.stops) {
+        const area = this.network.areas.get(stop.id);
+        if (area && stop.name !== area.name) {
+          stop.name = area.name;
+          await this.save();
+        }
+      }
       logger.info(
         `Tisséo timetable read in ${Date.now() - started} ms: ${this.network.stats.areas} stop areas, ${this.network.stats.trips} trips over ${this.network.dates.length} days`,
       );
@@ -489,8 +499,16 @@ export class Tisseo {
     }
     try {
       await this.gladys.publishChangedStates(states);
+      if (this.publishFailed) {
+        this.publishFailed = false;
+        logger.info('States published again');
+      }
     } catch (err) {
-      logger.warn(`Cannot publish ${states.length} state(s): ${err.message}`);
+      // Gladys restarting: said once, the next refresh sends them again.
+      if (!this.publishFailed) {
+        logger.warn(`Cannot publish ${states.length} state(s): ${err.message}`);
+      }
+      this.publishFailed = true;
     }
   }
 
@@ -679,7 +697,8 @@ export class Tisseo {
     let changed =
       firstCheck || JSON.stringify([...followed].sort()) !== JSON.stringify([...known].sort());
     for (const key of present) {
-      if (memory.seen[key] === undefined || now - memory.seen[key] > 60 * 1000) {
+      // Refreshed hourly only: /data is often an SD card, not worth a write a minute.
+      if (memory.seen[key] === undefined || now - memory.seen[key] > 3600 * 1000) {
         memory.seen[key] = now;
         changed = true;
       }

@@ -75,7 +75,8 @@ test('the ZIP reader lists the GTFS files and refuses what is not an archive', a
 test('CSV: quoted fields, doubled quotes, line breaks inside quotes, BOM, CRLF', async () => {
   assert.deepEqual(splitRecord('a,"b, c","d ""e"""'), ['a', 'b, c', 'd "e"']);
   assert.equal(splitRecord('a,"open'), null);
-  const text = '\uFEFFid,name,extra\r\n1,"Arènes, quai ""B""",x\r\n2,"two\r\nlines",y\r\n\r\n3,plain,z';
+  const text =
+    '\uFEFFid,name,extra\r\n1,"Arènes, quai ""B""",x\r\n2,"two\r\nlines",y\r\n\r\n3,plain,z';
   // Cut in awkward places, like the chunks of an inflate stream.
   const chunks = [text.slice(0, 5), text.slice(5, 23), text.slice(23)].map((part) =>
     Buffer.from(part, 'utf8'),
