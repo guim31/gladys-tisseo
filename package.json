@@ -1,6 +1,6 @@
 {
   "name": "gladys-tisseo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Gladys Assistant integration: next Tisséo departures in Toulouse, traffic alerts and VélôToulouse bikes, from open data.",
   "type": "module",

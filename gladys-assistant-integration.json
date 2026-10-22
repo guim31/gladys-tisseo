@@ -8,8 +8,8 @@
     "de": "Nächste Tisséo-Abfahrten in Toulouse, Störungen und VélôToulouse-Räder, aus Open Data.",
     "es": "Próximas salidas de Tisséo en Toulouse, incidencias y bicis VélôToulouse, con datos abiertos."
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/guim31/gladys-tisseo:1.0.0",
+  "version": "1.0.1",
+  "docker_image": "ghcr.io/guim31/gladys-tisseo:1.0.1",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/guim31/gladys-tisseo/main/cover.png",
   "categories": ["services"],
