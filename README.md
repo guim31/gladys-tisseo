@@ -34,7 +34,7 @@ your **VélôToulouse** stations. Everything comes from open data: no account, n
 
 ## Requirements
 
-- Gladys Assistant **5.1.0** or later (widgets, scene triggers and actions, house location).
+- Gladys Assistant **5.3.0** or later (catalog countries; 5.1.0 for widgets, scene triggers and actions, house location).
 - Internet access from the Gladys machine.
 - About 20 MB under `/data` for the timetable archive.
 
