@@ -35,7 +35,7 @@ timetable ones (a train every 1 to 4 minutes at rush hour), marked "≈" or
 
 ## Requirements
 
-- Gladys 5.1 or later, with Internet access.
+- Gladys 5.3 or later, with Internet access.
 - To list the stops **around your home**: the position of your house in
   Gladys (**Settings → Houses**). The integration asks for it on install
   (`location`): it reads the coordinates of your houses, nothing else, and

@@ -35,7 +35,7 @@ Echtzeit-Feed: Für sie gelten die Zeiten des Fahrplans (ein Zug alle 1 bis
 
 ## Voraussetzungen
 
-- Gladys 5.1 oder neuer, mit Internetzugang.
+- Gladys 5.3 oder neuer, mit Internetzugang.
 - Um die Haltestellen **rund um dein Zuhause** aufzulisten: die Position
   deines Hauses in Gladys (**Einstellungen → Zuhause**). Die Integration fragt
   bei der Installation danach (`location`): Gelesen werden nur die

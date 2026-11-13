@@ -35,7 +35,7 @@ tiempo real: sus horarios son los del plan de transporte (un tren cada 1 a
 
 ## Requisitos
 
-- Gladys 5.1 o posterior, con acceso a Internet.
+- Gladys 5.3 o posterior, con acceso a Internet.
 - Para listar las paradas **alrededor de su casa**: la posición de su casa en
   Gladys (**Configuración → Viviendas**). La integración la pide al
   instalarse (`location`): lee las coordenadas de sus casas, nada más, y solo

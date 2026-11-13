@@ -35,7 +35,7 @@ réel : ses horaires sont ceux du plan de transport (une rame toutes les 1 à
 
 ## Prérequis
 
-- Gladys 5.1 ou plus récent, avec un accès à Internet.
+- Gladys 5.3 ou plus récent, avec un accès à Internet.
 - Pour lister les arrêts **autour de chez vous** : la position de votre
   maison dans Gladys (**Paramètres → Maisons**). L'intégration la demande à
   l'installation (`location`) : elle lit les coordonnées de vos maisons, rien
